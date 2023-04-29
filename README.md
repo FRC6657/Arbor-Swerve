@@ -1,6 +1,4 @@
-# MAXSwerve Java Template v2023.1
-
-See [the online changelog](https://github.com/REVrobotics/MAXSwerve-Java-Template/blob/main/CHANGELOG.md) for information about updates to the template that may have been released since you created your project.
+# Arbor Swerve Java Template
 
 ## Description
 
@@ -12,8 +10,8 @@ To get started, make sure you have calibrated the zero offsets for the absolute 
 
 ## Prerequisites
 
-* SPARK MAX Firmware v1.6.2 - Adds features that are required for swerve
-* REVLib v2023.1.2 - Includes APIs for the new firmware features
+* SPARK MAX Firmware v1.6.3 - Adds features that are required for swerve
+* REVLib v2023.1.3 - Includes APIs for the new firmware features
 
 ## Configuration
 
