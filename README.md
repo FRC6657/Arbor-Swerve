@@ -10,6 +10,7 @@ To get started, make sure you have calibrated the zero offsets for the absolute 
 
 ## Prerequisites
 
+* WPILib 2023.4.3 - General Project Library
 * SPARK MAX Firmware v1.6.3 - Adds features that are required for swerve
 * REVLib v2023.1.3 - Includes APIs for the new firmware features
 
