@@ -4,6 +4,9 @@
 
 package frc.robot.subsystems.drivetrain;
 
+import java.util.List;
+
+import com.ctre.phoenix.sensors.BasePigeonSimCollection;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
 import edu.wpi.first.math.MathUtil;
@@ -11,42 +14,52 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.subsystems.drivetrain.modules.MAXSwerveModule;
+import frc.robot.subsystems.drivetrain.modules.SwerveModule;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Drivetrain extends SubsystemBase {
 
   // Create MAXSwerveModules
-  private final MAXSwerveModule mFrontLeft = new MAXSwerveModule(
+  private final SwerveModule mFrontLeft = new MAXSwerveModule(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftChassisAngularOffset
   );
 
-  private final MAXSwerveModule mFrontRight = new MAXSwerveModule(
+  private final SwerveModule mFrontRight = new MAXSwerveModule(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightChassisAngularOffset
   );
 
-  private final MAXSwerveModule mBackLeft = new MAXSwerveModule(
+  private final SwerveModule mBackLeft = new MAXSwerveModule(
       DriveConstants.kBackLeftDrivingCanId,
       DriveConstants.kBackLeftTurningCanId,
       DriveConstants.kBackLeftChassisAngularOffset
   );
 
-  private final MAXSwerveModule mBackRight = new MAXSwerveModule(
+  private final SwerveModule mBackRight = new MAXSwerveModule(
       DriveConstants.kBackRightDrivingCanId,
       DriveConstants.kBackRightTurningCanId,
       DriveConstants.kBackRightChassisAngularOffset
   );
 
+  private final List<SwerveModule> mModules = List.of(mFrontLeft, mFrontRight, mBackLeft, mBackRight);
+
   // The gyro sensor
   private final WPI_Pigeon2 mGyro = new WPI_Pigeon2(DriveConstants.kPigeon2CanId);
+  private final BasePigeonSimCollection mGyroSim = mGyro.getSimCollection();
 
   // Slew rate filter variables for controlling lateral acceleration
   private double mCurrentRotation = 0.0;
@@ -69,10 +82,16 @@ public class Drivetrain extends SubsystemBase {
     new Pose2d()
   );
 
-
+  private final Field2d mField2d = new Field2d();
+  private final FieldObject2d[] mModules2d = new FieldObject2d[mModules.size()];
 
   /** Creates a new DriveSubsystem. */
   public Drivetrain() {
+    for (int i = 0; i < mModules2d.length; i++) {
+      mModules2d[i] = mField2d.getObject("module-" + i);
+    }
+
+    SmartDashboard.putData("Field", mField2d);
   }
 
   /**
@@ -113,6 +132,13 @@ public class Drivetrain extends SubsystemBase {
         mBackRight.getPosition()
       }
     );
+
+    mField2d.setRobotPose(getPose());
+
+    for (int i = 0; i < mModules.size(); i++) {
+      var transform = new Transform2d(DriveConstants.kModuleOffset[i], mModules.get(i).getPosition().angle);
+      mModules2d[i].setPose(getPose().transformBy(transform));
+    }
   }
 
   /**
@@ -230,6 +256,20 @@ public class Drivetrain extends SubsystemBase {
    */
   public double getTurnRate() {
     return mGyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+  }
+
+  public void simulate(){
+    mGyroSim.addHeading(Units.radiansToDegrees(DriveConstants.kDriveKinematics.toChassisSpeeds(getModuleStates()).omegaRadiansPerSecond) * 0.02);
+  }
+
+  private SwerveModuleState[] getModuleStates() {
+    return new SwerveModuleState[]{
+      mFrontLeft.getState(),
+      mFrontRight.getState(),
+      mBackLeft.getState(),
+      mBackRight.getState(),
+      
+    };
   }
 
 }
