@@ -161,4 +161,19 @@ public class MAXSwerveModule {
   public void resetEncoders() {
     m_drivingEncoder.setPosition(0);
   }
+
+  public double getAppliedRotationVoltage() {
+      return m_turningSparkMax.get() * 12;
+  }
+
+  public double getAppliedDriveVoltage() {
+      return m_drivingSparkMax.get() * 12;
+  }
+
+public void setSimState(double azmthPos, double wheelPos, double wheelVel) {
+
+}
+
+
+
 }

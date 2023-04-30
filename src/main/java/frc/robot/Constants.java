@@ -95,6 +95,8 @@ public final class Constants {
     public static final double kDrivingEncoderPositionFactor = (kWheelDiameterMeters * Math.PI) / kDrivingMotorReduction; // meters
     public static final double kDrivingEncoderVelocityFactor = ((kWheelDiameterMeters * Math.PI) / kDrivingMotorReduction) / 60.0; // meters per second
 
+    public static final double kTurningMotorReduction = 9424d / 203;
+
     public static final double kTurningEncoderPositionFactor = (2 * Math.PI); // radians
     public static final double kTurningEncoderVelocityFactor = (2 * Math.PI) / 60.0; // radians per second
 
@@ -125,6 +127,11 @@ public final class Constants {
   public static final class DriverConstants {
     public static final int kDriverControllerPort = 0;
     public static final double kDriveDeadband = 0.05;
+  }
+
+  public static final class RobotConstants {
+    public static final double kRobotMassKg = Units.lbsToKilograms(60);
+    public static final double kRobotMOI = 1.0/12.0 * kRobotMassKg * ((DriveConstants.kWheelBase * 1.1) * (DriveConstants.kTrackWidth * 1.1)) * 2; //Model moment of intertia as a square slab slightly bigger than wheelbase with axis through center
   }
 
   public static final class AutoConstants {

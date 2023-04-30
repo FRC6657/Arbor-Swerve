@@ -4,6 +4,9 @@
 
 package frc.robot.subsystems.drivetrain;
 
+import java.util.List;
+
+import com.ctre.phoenix.sensors.BasePigeonSimCollection;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
 import edu.wpi.first.math.MathUtil;
@@ -15,7 +18,13 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.ModuleConstants;
+import frc.robot.Constants.RobotConstants;
+import frc.robot.subsystems.drivetrain.sim.QuadSwerveSim;
+import frc.robot.subsystems.drivetrain.sim.SwerveModuleSim;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Drivetrain extends SubsystemBase {
@@ -24,25 +33,38 @@ public class Drivetrain extends SubsystemBase {
   private final MAXSwerveModule mFrontLeft = new MAXSwerveModule(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
-      DriveConstants.kFrontLeftChassisAngularOffset);
+      DriveConstants.kFrontLeftChassisAngularOffset
+  );
 
   private final MAXSwerveModule mFrontRight = new MAXSwerveModule(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
-      DriveConstants.kFrontRightChassisAngularOffset);
+      DriveConstants.kFrontRightChassisAngularOffset
+  );
 
   private final MAXSwerveModule mBackLeft = new MAXSwerveModule(
       DriveConstants.kBackLeftDrivingCanId,
       DriveConstants.kBackLeftTurningCanId,
-      DriveConstants.kBackLeftChassisAngularOffset);
+      DriveConstants.kBackLeftChassisAngularOffset
+  );
 
   private final MAXSwerveModule mBackRight = new MAXSwerveModule(
       DriveConstants.kBackRightDrivingCanId,
       DriveConstants.kBackRightTurningCanId,
-      DriveConstants.kBackRightChassisAngularOffset);
+      DriveConstants.kBackRightChassisAngularOffset
+  );
+
+  private final List<MAXSwerveModule> mModules = List.of(
+    mFrontLeft,
+    mFrontRight,
+    mBackLeft,
+    mBackRight
+  );
 
   // The gyro sensor
-  private final WPI_Pigeon2 m_gyro = new WPI_Pigeon2(DriveConstants.kPigeon2CanId);
+  private final WPI_Pigeon2 mGyro = new WPI_Pigeon2(DriveConstants.kPigeon2CanId);
+  private final BasePigeonSimCollection mGyroSim = mGyro.getSimCollection();
+
 
   // Slew rate filter variables for controlling lateral acceleration
   private double mCurrentRotation = 0.0;
@@ -55,7 +77,7 @@ public class Drivetrain extends SubsystemBase {
   // Pose Estimator class for tracking robot pose
   SwerveDrivePoseEstimator mPoseEstimator = new SwerveDrivePoseEstimator(
     DriveConstants.kDriveKinematics,
-    Rotation2d.fromDegrees(m_gyro.getAngle()),
+    Rotation2d.fromDegrees(mGyro.getAngle()),
     new SwerveModulePosition[] {
         mFrontLeft.getPosition(),
         mFrontRight.getPosition(),
@@ -63,6 +85,22 @@ public class Drivetrain extends SubsystemBase {
         mBackRight.getPosition()
     }, 
     new Pose2d()
+  );
+
+  private final List<SwerveModuleSim> mModuleSims = List.of(
+    swerveSimModuleFactory(),
+    swerveSimModuleFactory(),
+    swerveSimModuleFactory(),
+    swerveSimModuleFactory()
+  );
+
+  private final QuadSwerveSim mQuadSwerveSim = 
+  new QuadSwerveSim(
+      DriveConstants.kWheelBase,
+      DriveConstants.kTrackWidth,
+      RobotConstants.kRobotMassKg,
+      RobotConstants.kRobotMOI,
+      mModuleSims
   );
 
   /** Creates a new DriveSubsystem. */
@@ -84,8 +122,11 @@ public class Drivetrain extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetPose(Pose2d pose) {
+
+    mQuadSwerveSim.modelReset(pose);
+
     mPoseEstimator.resetPosition(
-      Rotation2d.fromDegrees(m_gyro.getAngle()),
+      Rotation2d.fromDegrees(mGyro.getAngle()),
       new SwerveModulePosition[] {
           mFrontLeft.getPosition(),
           mFrontRight.getPosition(),
@@ -98,7 +139,7 @@ public class Drivetrain extends SubsystemBase {
 
   public void updatePoseEstimator(){
     mPoseEstimator.update(
-      Rotation2d.fromDegrees(m_gyro.getAngle()),
+      Rotation2d.fromDegrees(mGyro.getAngle()),
       new SwerveModulePosition[] {
         mFrontLeft.getPosition(),
         mFrontRight.getPosition(),
@@ -157,7 +198,7 @@ public class Drivetrain extends SubsystemBase {
 
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
       fieldRelative
-      ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(m_gyro.getAngle()))
+      ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(mGyro.getAngle()))
       : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
     );
 
@@ -204,7 +245,7 @@ public class Drivetrain extends SubsystemBase {
 
   /** Zeroes the heading of the robot. */
   public void zeroHeading() {
-    m_gyro.reset();
+    mGyro.reset();
   }
 
   /**
@@ -213,7 +254,7 @@ public class Drivetrain extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return Rotation2d.fromDegrees(m_gyro.getAngle()).getDegrees();
+    return Rotation2d.fromDegrees(mGyro.getAngle()).getDegrees();
   }
 
   /**
@@ -222,6 +263,62 @@ public class Drivetrain extends SubsystemBase {
    * @return The turn rate of the robot, in degrees per second
    */
   public double getTurnRate() {
-    return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
+    return mGyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
+
+  static SwerveModuleSim swerveSimModuleFactory(){
+    return new SwerveModuleSim(
+      DCMotor.getNeo550(1), 
+      DCMotor.getNEO(1), 
+      ModuleConstants.kWheelDiameterMeters/2,
+      ModuleConstants.kTurningMotorReduction,
+      ModuleConstants.kDrivingMotorReduction,
+      ModuleConstants.kTurningMotorReduction,
+      ModuleConstants.kDrivingMotorReduction,
+      1.5,
+  2,
+      RobotConstants.kRobotMassKg * 9.81 / QuadSwerveSim.NUM_MODULES,
+      0.01 
+    );
+  }
+
+  public void simulate(){
+            
+        // set inputs. Set 0 if the robot is disabled.
+        if(!DriverStation.isEnabled()){
+          for(int idx = 0; idx < QuadSwerveSim.NUM_MODULES; idx++){
+              mModuleSims.get(idx).setInputVoltages(0.0, 0.0);
+          }
+      } else {
+          for(int idx = 0; idx < QuadSwerveSim.NUM_MODULES; idx++){
+              double azmthVolts = mModules.get(idx).getAppliedRotationVoltage();
+              double wheelVolts = mModules.get(idx).getAppliedDriveVoltage() * 1.44;
+              mModuleSims.get(idx).setInputVoltages(wheelVolts, azmthVolts);
+          }
+      }
+
+      Pose2d prevRobotPose = mQuadSwerveSim.getCurPose();
+
+      // Update model (several small steps)
+      for (int i = 0; i < 20; i++) {
+          mQuadSwerveSim.update(0.001);
+      }
+      
+
+      //Set the state of the sim'd hardware
+      for(int idx = 0; idx < QuadSwerveSim.NUM_MODULES; idx++){
+          double azmthPos = mModuleSims.get(idx).getAzimuthEncoderPositionRev();
+          azmthPos = azmthPos / ModuleConstants.kTurningMotorReduction * 2 * Math.PI;
+          double wheelPos = mModuleSims.get(idx).getWheelEncoderPositionRev();
+          wheelPos = wheelPos / ModuleConstants.kDrivingEncoderPositionFactor * 2 * Math.PI * ModuleConstants.kWheelDiameterMeters/2;
+
+          double wheelVel = mModuleSims.get(idx).getWheelEncoderVelocityRevPerSec();
+          wheelVel = wheelVel / ModuleConstants.kDrivingEncoderVelocityFactor * 2 * Math.PI * ModuleConstants.kWheelDiameterMeters/2;
+          mModules.get(idx).setSimState(azmthPos, wheelPos, wheelVel);
+         
+      }
+      // Set the gyro based on the difference between the previous pose and this pose.
+      mGyroSim.addHeading(mQuadSwerveSim.getCurPose().minus(prevRobotPose).getRotation().getDegrees());
+  }
+
 }
