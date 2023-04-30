@@ -1,6 +1,9 @@
 package frc.robot.commands;
 
+import java.util.function.DoubleSupplier;
+
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import frc.robot.Constants.DriverConstants;
@@ -14,14 +17,14 @@ public class CommandFactory {
         drivetrain = _drivetrain;
     }
 
-    public Command TeleopSwerve(double xInput, double yInput, double rInput){
+    public Command TeleopSwerve(DoubleSupplier xInput, DoubleSupplier yInput, DoubleSupplier rInput){
         return new RunCommand(
             () -> drivetrain.drive(
-                -MathUtil.applyDeadband(xInput, DriverConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(yInput, DriverConstants.kDriveDeadband),
-                -MathUtil.applyDeadband(rInput, DriverConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(xInput.getAsDouble(), DriverConstants.kDriveDeadband),
+                -MathUtil.applyDeadband(yInput.getAsDouble(), DriverConstants.kDriveDeadband),
+                MathUtil.applyDeadband(rInput.getAsDouble(), DriverConstants.kDriveDeadband),
                 true, 
-                true
+                RobotBase.isReal() ? true : false
             ),
             drivetrain
         );

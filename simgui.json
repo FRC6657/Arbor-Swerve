@@ -1,0 +1,50 @@
+{
+  "HALProvider": {
+    "Other Devices": {
+      "SPARK MAX [1]": {
+        "header": {
+          "open": true
+        }
+      }
+    }
+  },
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/Field": "Field2d"
+    },
+    "windows": {
+      "/SmartDashboard/Field": {
+        "Robot": {
+          "length": 0.8762999773025513,
+          "width": 0.8762999773025513
+        },
+        "module-0": {
+          "arrowSize": 22,
+          "length": 0.5,
+          "style": "Line",
+          "weight": 2.0,
+          "width": 0.5
+        },
+        "module-1": {
+          "arrowSize": 22,
+          "length": 0.5,
+          "style": "Line",
+          "weight": 2.0,
+          "width": 0.5
+        },
+        "module-2": {
+          "arrowSize": 14,
+          "style": "Line"
+        },
+        "module-3": {
+          "arrowSize": 14,
+          "style": "Line"
+        },
+        "window": {
+          "visible": true
+        }
+      }
+    }
+  }
+}

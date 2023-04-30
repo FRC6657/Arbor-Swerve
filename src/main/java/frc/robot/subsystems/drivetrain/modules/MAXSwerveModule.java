@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.drivetrain;
+package frc.robot.subsystems.drivetrain.modules;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -17,7 +17,7 @@ import com.revrobotics.RelativeEncoder;
 
 import frc.robot.Constants.ModuleConstants;
 
-public class MAXSwerveModule {
+public class MAXSwerveModule implements SwerveModule{
   private final CANSparkMax m_drivingSparkMax;
   private final CANSparkMax m_turningSparkMax;
 
@@ -168,6 +168,11 @@ public class MAXSwerveModule {
 
   public double getAppliedDriveVoltage() {
       return m_drivingSparkMax.get() * 12;
+  }
+
+  @Override
+  public SwerveModuleState getDesiredState() {
+    return m_desiredState;
   }
 
 }
