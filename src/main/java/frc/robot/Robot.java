@@ -28,9 +28,9 @@ public class Robot extends TimedRobot {
     
     mDrivetrain.setDefaultCommand(
       mCommandFactory.TeleopSwerve(
-        mDriveController.getLeftY(),
-        mDriveController.getLeftX(),
-        mDriveController.getRightY()
+        () -> mDriveController.getLeftY(),
+        () ->  mDriveController.getLeftX(),
+        () -> mDriveController.getRightX()
       )
     );
 
@@ -42,6 +42,11 @@ public class Robot extends TimedRobot {
 
     mDrivetrain.updatePoseEstimator();
 
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    mDrivetrain.simulate();
   }
 
   @Override

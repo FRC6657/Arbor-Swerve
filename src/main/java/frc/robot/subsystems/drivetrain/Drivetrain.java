@@ -15,6 +15,7 @@ import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -24,32 +25,31 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.subsystems.drivetrain.modules.MAXSwerveModule;
 import frc.robot.subsystems.drivetrain.modules.SwerveModule;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Drivetrain extends SubsystemBase {
 
   // Create MAXSwerveModules
-  private final SwerveModule mFrontLeft = new MAXSwerveModule(
+  private final SwerveModule mFrontLeft = SwerveModule.create(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
       DriveConstants.kFrontLeftChassisAngularOffset
   );
 
-  private final SwerveModule mFrontRight = new MAXSwerveModule(
+  private final SwerveModule mFrontRight = SwerveModule.create(
       DriveConstants.kFrontRightDrivingCanId,
       DriveConstants.kFrontRightTurningCanId,
       DriveConstants.kFrontRightChassisAngularOffset
   );
 
-  private final SwerveModule mBackLeft = new MAXSwerveModule(
+  private final SwerveModule mBackLeft = SwerveModule.create(
       DriveConstants.kBackLeftDrivingCanId,
       DriveConstants.kBackLeftTurningCanId,
       DriveConstants.kBackLeftChassisAngularOffset
   );
 
-  private final SwerveModule mBackRight = new MAXSwerveModule(
+  private final SwerveModule mBackRight = SwerveModule.create(
       DriveConstants.kBackRightDrivingCanId,
       DriveConstants.kBackRightTurningCanId,
       DriveConstants.kBackRightChassisAngularOffset
@@ -79,7 +79,7 @@ public class Drivetrain extends SubsystemBase {
         mBackLeft.getPosition(),
         mBackRight.getPosition()
     }, 
-    new Pose2d()
+    new Pose2d(new Translation2d(4,4), new Rotation2d())
   );
 
   private final Field2d mField2d = new Field2d();
@@ -92,6 +92,7 @@ public class Drivetrain extends SubsystemBase {
     }
 
     SmartDashboard.putData("Field", mField2d);
+
   }
 
   /**
@@ -152,7 +153,7 @@ public class Drivetrain extends SubsystemBase {
    * @param rateLimit     Whether to enable rate limiting for smoother control.
    */
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
-    
+
     //This method is for joystick values, so scale values just incase.
     xSpeed = MathUtil.clamp(xSpeed, -1, 1);
     ySpeed = MathUtil.clamp(ySpeed, -1, 1);
@@ -195,6 +196,8 @@ public class Drivetrain extends SubsystemBase {
     );
 
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
+
+    SmartDashboard.putNumber("Test", xSpeed);
 
     mFrontLeft.setDesiredState(swerveModuleStates[0]);
     mFrontRight.setDesiredState(swerveModuleStates[1]);
@@ -259,6 +262,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void simulate(){
+    SmartDashboard.putData("Module 1", mFrontLeft);
     mGyroSim.addHeading(Units.radiansToDegrees(DriveConstants.kDriveKinematics.toChassisSpeeds(getModuleStates()).omegaRadiansPerSecond) * 0.02);
   }
 
