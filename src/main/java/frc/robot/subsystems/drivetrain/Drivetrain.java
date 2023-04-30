@@ -4,9 +4,6 @@
 
 package frc.robot.subsystems.drivetrain;
 
-import java.util.List;
-
-import com.ctre.phoenix.sensors.BasePigeonSimCollection;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
 import edu.wpi.first.math.MathUtil;
@@ -18,13 +15,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.ModuleConstants;
-import frc.robot.Constants.RobotConstants;
-import frc.robot.subsystems.drivetrain.sim.QuadSwerveSim;
-import frc.robot.subsystems.drivetrain.sim.SwerveModuleSim;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Drivetrain extends SubsystemBase {
@@ -54,17 +45,8 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kBackRightChassisAngularOffset
   );
 
-  private final List<MAXSwerveModule> mModules = List.of(
-    mFrontLeft,
-    mFrontRight,
-    mBackLeft,
-    mBackRight
-  );
-
   // The gyro sensor
   private final WPI_Pigeon2 mGyro = new WPI_Pigeon2(DriveConstants.kPigeon2CanId);
-  private final BasePigeonSimCollection mGyroSim = mGyro.getSimCollection();
-
 
   // Slew rate filter variables for controlling lateral acceleration
   private double mCurrentRotation = 0.0;
@@ -87,21 +69,7 @@ public class Drivetrain extends SubsystemBase {
     new Pose2d()
   );
 
-  private final List<SwerveModuleSim> mModuleSims = List.of(
-    swerveSimModuleFactory(),
-    swerveSimModuleFactory(),
-    swerveSimModuleFactory(),
-    swerveSimModuleFactory()
-  );
 
-  private final QuadSwerveSim mQuadSwerveSim = 
-  new QuadSwerveSim(
-      DriveConstants.kWheelBase,
-      DriveConstants.kTrackWidth,
-      RobotConstants.kRobotMassKg,
-      RobotConstants.kRobotMOI,
-      mModuleSims
-  );
 
   /** Creates a new DriveSubsystem. */
   public Drivetrain() {
@@ -122,8 +90,6 @@ public class Drivetrain extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetPose(Pose2d pose) {
-
-    mQuadSwerveSim.modelReset(pose);
 
     mPoseEstimator.resetPosition(
       Rotation2d.fromDegrees(mGyro.getAngle()),
@@ -264,61 +230,6 @@ public class Drivetrain extends SubsystemBase {
    */
   public double getTurnRate() {
     return mGyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
-  }
-
-  static SwerveModuleSim swerveSimModuleFactory(){
-    return new SwerveModuleSim(
-      DCMotor.getNeo550(1), 
-      DCMotor.getNEO(1), 
-      ModuleConstants.kWheelDiameterMeters/2,
-      ModuleConstants.kTurningMotorReduction,
-      ModuleConstants.kDrivingMotorReduction,
-      ModuleConstants.kTurningMotorReduction,
-      ModuleConstants.kDrivingMotorReduction,
-      1.5,
-  2,
-      RobotConstants.kRobotMassKg * 9.81 / QuadSwerveSim.NUM_MODULES,
-      0.01 
-    );
-  }
-
-  public void simulate(){
-            
-        // set inputs. Set 0 if the robot is disabled.
-        if(!DriverStation.isEnabled()){
-          for(int idx = 0; idx < QuadSwerveSim.NUM_MODULES; idx++){
-              mModuleSims.get(idx).setInputVoltages(0.0, 0.0);
-          }
-      } else {
-          for(int idx = 0; idx < QuadSwerveSim.NUM_MODULES; idx++){
-              double azmthVolts = mModules.get(idx).getAppliedRotationVoltage();
-              double wheelVolts = mModules.get(idx).getAppliedDriveVoltage() * 1.44;
-              mModuleSims.get(idx).setInputVoltages(wheelVolts, azmthVolts);
-          }
-      }
-
-      Pose2d prevRobotPose = mQuadSwerveSim.getCurPose();
-
-      // Update model (several small steps)
-      for (int i = 0; i < 20; i++) {
-          mQuadSwerveSim.update(0.001);
-      }
-      
-
-      //Set the state of the sim'd hardware
-      for(int idx = 0; idx < QuadSwerveSim.NUM_MODULES; idx++){
-          double azmthPos = mModuleSims.get(idx).getAzimuthEncoderPositionRev();
-          azmthPos = azmthPos / ModuleConstants.kTurningMotorReduction * 2 * Math.PI;
-          double wheelPos = mModuleSims.get(idx).getWheelEncoderPositionRev();
-          wheelPos = wheelPos / ModuleConstants.kDrivingEncoderPositionFactor * 2 * Math.PI * ModuleConstants.kWheelDiameterMeters/2;
-
-          double wheelVel = mModuleSims.get(idx).getWheelEncoderVelocityRevPerSec();
-          wheelVel = wheelVel / ModuleConstants.kDrivingEncoderVelocityFactor * 2 * Math.PI * ModuleConstants.kWheelDiameterMeters/2;
-          mModules.get(idx).setSimState(azmthPos, wheelPos, wheelVel);
-         
-      }
-      // Set the gyro based on the difference between the previous pose and this pose.
-      mGyroSim.addHeading(mQuadSwerveSim.getCurPose().minus(prevRobotPose).getRotation().getDegrees());
   }
 
 }

@@ -170,10 +170,4 @@ public class MAXSwerveModule {
       return m_drivingSparkMax.get() * 12;
   }
 
-public void setSimState(double azmthPos, double wheelPos, double wheelVel) {
-
-}
-
-
-
 }
