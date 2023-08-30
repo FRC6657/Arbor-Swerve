@@ -15,22 +15,30 @@ import frc.robot.subsystems.drivetrain.Drivetrain;
 
 public class Robot extends TimedRobot {
 
-  private final Drivetrain mDrivetrain = new Drivetrain();
+  //Subsystems
+  private final Drivetrain drivetrain = new Drivetrain();
 
-  private final CommandFactory mCommandFactory = new CommandFactory(mDrivetrain);
+  //Command Factory
+  private final CommandFactory commandFactory = new CommandFactory(drivetrain);
 
-  private final CommandXboxController mDriveController = new CommandXboxController(DriverConstants.kDriverControllerPort);
+  //Controllers
+  private final CommandXboxController driveController = new CommandXboxController(DriverConstants.kDriverControllerPort);
 
-  private Command m_autonomousCommand;
+  private Command autonomousCommand;
 
+
+  /**
+   * This function is run when the robot is first started up and should be used for any initialization code.
+   */
   @Override
   public void robotInit(){
     
-    mDrivetrain.setDefaultCommand(
-      mCommandFactory.TeleopSwerve(
-        () -> mDriveController.getLeftY(),
-        () ->  mDriveController.getLeftX(),
-        () -> mDriveController.getRightX()
+    //Set the default command for the drivetrain to allow for teleop control
+    drivetrain.setDefaultCommand(
+      commandFactory.TeleopSwerve(
+        () ->- driveController.getLeftY(),
+        () -> driveController.getLeftX(),
+        () -> -driveController.getRightX()
       )
     );
 
@@ -40,19 +48,19 @@ public class Robot extends TimedRobot {
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
 
-    mDrivetrain.updatePoseEstimator();
+    drivetrain.updatePoseEstimator();
 
   }
 
   @Override
   public void simulationPeriodic() {
-    mDrivetrain.simulate();
+    drivetrain.simulate();
   }
 
   @Override
   public void teleopInit() {
-    if (m_autonomousCommand != null) {
-      m_autonomousCommand.cancel();
+    if (autonomousCommand != null) {
+      autonomousCommand.cancel();
     }
   }
 

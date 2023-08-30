@@ -46,5 +46,15 @@
         }
       }
     }
+  },
+  "NetworkTables": {
+    "transitory": {
+      "SmartDashboard": {
+        "Module 1": {
+          "open": true
+        },
+        "open": true
+      }
+    }
   }
 }

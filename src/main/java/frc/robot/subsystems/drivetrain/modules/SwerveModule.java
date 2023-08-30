@@ -12,16 +12,16 @@ public interface SwerveModule extends Sendable {
   /**
    * Creates a swerve module.
    *
-   * <p>If the robot is real, a new {@link MAXSwerveModule} will be created, otherwise either a
-   * {@link GoalSwerveModule} or a {@link SimSwerveModule} will be created.
+   * <p>If the robot is real, a new {@link MAXSwerveModule} will be created, otherwise a
+   * {@link GoalSwerveModule} will be created.
    *
    * <p>For the parameters, see {@link MAXSwerveModule#MAXSwerveModule(int, int, double)}.
    *
    * @return A new {@link SwerveModule} based on if the robot is currently real or simulated.
    */
-  public static SwerveModule create(int drivePort, int turnPort, double angularOffset) {
+  public static SwerveModule create(int _drivePort, int _turnPort, double _angularOffset) {
     return RobotBase.isReal()
-        ? new MAXSwerveModule(drivePort, turnPort, angularOffset)
+        ? new MAXSwerveModule(_drivePort, _turnPort, _angularOffset)
         : new GoalSwerveModule();
   }
 
@@ -42,9 +42,9 @@ public interface SwerveModule extends Sendable {
   /**
    * Sets the desired state for the module.
    *
-   * @param desiredState Desired state with speed and angle.
+   * @param _desiredState Desired state with speed and angle.
    */
-  public void setDesiredState(SwerveModuleState desiredState);
+  public void setDesiredState(SwerveModuleState _desiredState);
 
   /**
    * Returns the desired state for the module.
@@ -57,12 +57,11 @@ public interface SwerveModule extends Sendable {
   public void resetEncoders();
 
   @Override
-  default void initSendable(SendableBuilder builder) {
-    builder.addDoubleProperty("current velocity", () -> getState().speedMetersPerSecond, null);
-    builder.addDoubleProperty("current angle", () -> getPosition().angle.getRadians(), null);
-    builder.addDoubleProperty("current position", () -> getPosition().distanceMeters, null);
-    builder.addDoubleProperty(
-        "target velocity", () -> getDesiredState().speedMetersPerSecond, null);
-    builder.addDoubleProperty("target angle", () -> getDesiredState().angle.getRadians(), null);
+  default void initSendable(SendableBuilder _builder) {
+    _builder.addDoubleProperty("current velocity", () -> getState().speedMetersPerSecond, null);
+    _builder.addDoubleProperty("current angle", () -> getPosition().angle.getRadians(), null);
+    _builder.addDoubleProperty("current position", () -> getPosition().distanceMeters, null);
+    _builder.addDoubleProperty("target velocity", () -> getDesiredState().speedMetersPerSecond, null);
+    _builder.addDoubleProperty("target angle", () -> getDesiredState().angle.getRadians(), null);
   }
 }
