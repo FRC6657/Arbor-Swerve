@@ -19,6 +19,10 @@
           "length": 0.8762999773025513,
           "width": 0.8762999773025513
         },
+        "bottom": 544,
+        "height": 8.013679504394531,
+        "image": "D:\\Projects\\FRC\\Arbor-Swerve\\2023-field.png",
+        "left": 46,
         "module-0": {
           "arrowSize": 22,
           "length": 0.5,
@@ -41,6 +45,9 @@
           "arrowSize": 14,
           "style": "Line"
         },
+        "right": 1088,
+        "top": 36,
+        "width": 16.541748046875,
         "window": {
           "visible": true
         }
