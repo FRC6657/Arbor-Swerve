@@ -3,9 +3,6 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
-
-import com.pathplanner.lib.PathConstraints;
-
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -25,12 +22,6 @@ public class Robot extends TimedRobot {
 
   //Controllers
   private final CommandXboxController driveController = new CommandXboxController(DriverConstants.kDriverControllerPort);
-
-  private Command autonomousCommand = commandFactory.AutoPath(
-    "Test Path", 
-    new PathConstraints(3, 2), 
-    null
-  );
 
   /**
    * This function is run when the robot is first started up and should be used for any initialization code.
@@ -64,16 +55,16 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit(){
-    if(autonomousCommand != null){
-      CommandScheduler.getInstance().schedule(autonomousCommand);
-    }
+    // if(autonomousCommand != null){
+    //   CommandScheduler.getInstance().schedule(autonomousCommand);
+    // }
   }
 
   @Override
   public void teleopInit() {
-    if (autonomousCommand != null) {
-      autonomousCommand.cancel();
-    }
+    // if (autonomousCommand != null) {
+    //   autonomousCommand.cancel();
+    // }
   }
 
   @Override
