@@ -11,7 +11,11 @@
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
-      "/SmartDashboard/Field": "Field2d"
+      "/SmartDashboard/ChoreoSwerveControllerCommand_field": "Field2d",
+      "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/SendableChooser[0]": "String Chooser",
+      "/SmartDashboard/SendableChooser[1]": "String Chooser",
+      "/SmartDashboard/SendableChooser[2]": "String Chooser"
     },
     "windows": {
       "/SmartDashboard/Field": {
@@ -47,7 +51,29 @@
         },
         "right": 1088,
         "top": 36,
+        "traj": {
+          "style": "Box/Image"
+        },
+        "trajPoses": {
+          "arrows": false,
+          "style": "Line"
+        },
         "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/SendableChooser[0]": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/SendableChooser[1]": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/SendableChooser[2]": {
         "window": {
           "visible": true
         }
@@ -57,11 +83,37 @@
   "NetworkTables": {
     "transitory": {
       "SmartDashboard": {
-        "Module 1": {
-          "open": true
-        },
         "open": true
       }
+    }
+  },
+  "Plot": {
+    "Plot <0>": {
+      "plots": [
+        {
+          "height": 334,
+          "series": [
+            {
+              "color": [
+                0.2980392277240753,
+                0.44705885648727417,
+                0.6901960968971252,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/ChoreoSwerveControllerCommand_rotationCurrent"
+            },
+            {
+              "color": [
+                0.8666667342185974,
+                0.5176470875740051,
+                0.32156863808631897,
+                1.0
+              ],
+              "id": "NT:/SmartDashboard/ChoreoSwerveControllerCommand_rotationSetpoint"
+            }
+          ]
+        }
+      ]
     }
   }
 }

@@ -8,7 +8,6 @@ import com.revrobotics.CANSparkMax.IdleMode;
 
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 
 /**
@@ -74,6 +73,27 @@ public final class Constants {
     public static final boolean kGyroReversed = false;
   }
 
+  public static final class ElevatorConstants{
+
+    public static class ElevatorSetpoint {
+      public double cube;
+      public double cone;
+    
+      public ElevatorSetpoint(double cubeSetpoint, double coneSetpoint) {
+        this.cube = cubeSetpoint;
+        this.cone = coneSetpoint;
+      }
+
+    }
+
+    public static ElevatorSetpoint ZERO = new ElevatorSetpoint(9.600 , 9.600);
+    public static ElevatorSetpoint CARRY = new ElevatorSetpoint(10.00 , 10.00);
+    public static ElevatorSetpoint LEVEL1 = new ElevatorSetpoint(12.50 , 13.00);
+    public static ElevatorSetpoint LEVEL2 = new ElevatorSetpoint(32.50 , 40.25);
+    public static ElevatorSetpoint LEVEL3 = new ElevatorSetpoint(46.25 , 53.50);
+
+  }
+
   public static final class ModuleConstants {
 
     // The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
@@ -137,18 +157,12 @@ public final class Constants {
   }
 
   public static final class AutoConstants {
-    public static final double kMaxSpeedMetersPerSecond = 3;
-    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
-    public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
-    public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
 
     public static final double kPXController = 1;
     public static final double kPYController = 1;
     public static final double kPThetaController = 1;
 
-    // Constraint for the motion profiled robot angle controller
-    public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
-  
+ 
   }
 
   public static final class NeoMotorConstants {

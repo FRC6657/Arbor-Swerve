@@ -4,8 +4,6 @@
 
 package frc.robot.subsystems.drivetrain;
 
-import java.util.List;
-
 import com.ctre.phoenix.sensors.BasePigeonSimCollection;
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
 
@@ -14,15 +12,13 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.subsystems.drivetrain.modules.SwerveModule;
@@ -55,8 +51,6 @@ public class Drivetrain extends SubsystemBase {
       DriveConstants.kBackRightChassisAngularOffset
   );
 
-  private final List<SwerveModule> modules = List.of(frontLeft, frontRight, backLeft, backRight);
-
   // The gyro sensor
   private final WPI_Pigeon2 gyro = new WPI_Pigeon2(DriveConstants.kPigeon2CanId);
   private final BasePigeonSimCollection gyroSim = gyro.getSimCollection();
@@ -69,6 +63,8 @@ public class Drivetrain extends SubsystemBase {
   private SlewRateLimiter magLimiter = new SlewRateLimiter(DriveConstants.kMagnitudeSlewRate);
   private SlewRateLimiter rotLimiter = new SlewRateLimiter(DriveConstants.kRotationalSlewRate);
 
+  double fieldRelativeOffset = 0;
+
   // Pose Estimator class for tracking robot pose
   SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(
     DriveConstants.kDriveKinematics,
@@ -80,18 +76,17 @@ public class Drivetrain extends SubsystemBase {
         backRight.getPosition()
     }, 
     new Pose2d(new Translation2d(4,4), new Rotation2d())
-  );
-
-  private final Field2d field2d = new Field2d();
-  private final FieldObject2d[] modules2d = new FieldObject2d[modules.size()];
+  );  
 
   /** Creates a new DriveSubsystem. */
   public Drivetrain() {
-    for (int i = 0; i < modules2d.length; i++) {
-      modules2d[i] = field2d.getObject("module-" + i);
-    }
 
-    SmartDashboard.putData("Field", field2d);
+    if(DriverStation.getAlliance() == DriverStation.Alliance.Red){
+      fieldRelativeOffset = 180;
+    }else
+    {
+      fieldRelativeOffset = 0;
+    }
 
   }
 
@@ -110,9 +105,18 @@ public class Drivetrain extends SubsystemBase {
    * @param _pose The pose to which to set the odometry.
    */
   public void resetPose(Pose2d _pose) {
+    
+    if(DriverStation.getAlliance() == DriverStation.Alliance.Red){
+      fieldRelativeOffset = 180;
+    }else
+    {
+      fieldRelativeOffset = 0;
+    }
+
+    gyro.setYaw(_pose.getRotation().getDegrees());
 
     poseEstimator.resetPosition(
-      Rotation2d.fromDegrees(gyro.getAngle()),
+      _pose.getRotation(),
       new SwerveModulePosition[] {
           frontLeft.getPosition(),
           frontRight.getPosition(),
@@ -125,7 +129,7 @@ public class Drivetrain extends SubsystemBase {
 
   public void updatePoseEstimator(){
     poseEstimator.update(
-      Rotation2d.fromDegrees(gyro.getAngle()),
+      Rotation2d.fromDegrees(-gyro.getAngle()),
       new SwerveModulePosition[] {
         frontLeft.getPosition(),
         frontRight.getPosition(),
@@ -134,12 +138,7 @@ public class Drivetrain extends SubsystemBase {
       }
     );
 
-    field2d.setRobotPose(getPose());
-
-    for (int i = 0; i < modules.size(); i++) {
-      var transform = new Transform2d(DriveConstants.kModuleOffset[i], modules.get(i).getPosition().angle);
-      modules2d[i].setPose(getPose().transformBy(transform));
-    }
+    SmartDashboard.putNumber("Gryo Angle", -gyro.getAngle());
   }
 
   /**
@@ -191,13 +190,11 @@ public class Drivetrain extends SubsystemBase {
 
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
       _fieldRelative
-      ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(gyro.getAngle()))
+      ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered, Rotation2d.fromDegrees(-gyro.getAngle() + fieldRelativeOffset))
       : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered)
     );
 
     SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
-
-    SmartDashboard.putNumber("Test", _xSpeed);
 
     frontLeft.setDesiredState(swerveModuleStates[0]);
     frontRight.setDesiredState(swerveModuleStates[1]);
@@ -269,7 +266,7 @@ public class Drivetrain extends SubsystemBase {
     gyroSim.addHeading(Units.radiansToDegrees(DriveConstants.kDriveKinematics.toChassisSpeeds(getModuleStates()).omegaRadiansPerSecond) * 0.02);
   }
 
-  private SwerveModuleState[] getModuleStates() {
+  public SwerveModuleState[] getModuleStates() {
     return new SwerveModuleState[]{
       frontLeft.getState(),
       frontRight.getState(),
